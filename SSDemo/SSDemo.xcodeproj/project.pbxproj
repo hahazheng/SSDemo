@@ -8,12 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		5DE2CCE4FB3A047436C64A24 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 353E82E28ADED8E3E3BF0A7D /* libPods.a */; };
+		62C933A21C1ADAC90072A669 /* UILabel+HYLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 62C933A11C1ADAC90072A669 /* UILabel+HYLabel.m */; };
 		C2F3FBED1C127B3700DDDD2D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C2F3FBEC1C127B3700DDDD2D /* main.m */; };
 		C2F3FBF61C127B3700DDDD2D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C2F3FBF41C127B3700DDDD2D /* Main.storyboard */; };
 		C2F3FBF81C127B3700DDDD2D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C2F3FBF71C127B3700DDDD2D /* Assets.xcassets */; };
 		C2F3FBFB1C127B3700DDDD2D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C2F3FBF91C127B3700DDDD2D /* LaunchScreen.storyboard */; };
 		C2F3FC251C127BEA00DDDD2D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = C2F3FC051C127BEA00DDDD2D /* AppDelegate.m */; };
-		C2F3FC861C131BAF00DDDD2D /* NSString+HYNSString.m in Sources */ = {isa = PBXBuildFile; fileRef = C2F3FC711C131BAF00DDDD2D /* NSString+HYNSString.m */; };
 		C2F3FC871C131BAF00DDDD2D /* LyricHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = C2F3FC741C131BAF00DDDD2D /* LyricHelper.m */; };
 		C2F3FC881C131BAF00DDDD2D /* PlayerHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = C2F3FC761C131BAF00DDDD2D /* PlayerHelper.m */; };
 		C2F3FC891C131BAF00DDDD2D /* oral8000_1.lrc in Resources */ = {isa = PBXBuildFile; fileRef = C2F3FC791C131BAF00DDDD2D /* oral8000_1.lrc */; };
@@ -32,6 +32,8 @@
 
 /* Begin PBXFileReference section */
 		353E82E28ADED8E3E3BF0A7D /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		62C933A01C1ADAC90072A669 /* UILabel+HYLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UILabel+HYLabel.h"; sourceTree = "<group>"; };
+		62C933A11C1ADAC90072A669 /* UILabel+HYLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UILabel+HYLabel.m"; sourceTree = "<group>"; };
 		6C4110C7323BC66AB94ADBD8 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		BA43784520C848EDE5B94705 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		C2F3FBE81C127B3700DDDD2D /* SSDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SSDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,8 +44,6 @@
 		C2F3FBFC1C127B3700DDDD2D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C2F3FC041C127BEA00DDDD2D /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		C2F3FC051C127BEA00DDDD2D /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		C2F3FC701C131BAF00DDDD2D /* NSString+HYNSString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+HYNSString.h"; sourceTree = "<group>"; };
-		C2F3FC711C131BAF00DDDD2D /* NSString+HYNSString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+HYNSString.m"; sourceTree = "<group>"; };
 		C2F3FC731C131BAF00DDDD2D /* LyricHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricHelper.h; sourceTree = "<group>"; };
 		C2F3FC741C131BAF00DDDD2D /* LyricHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LyricHelper.m; sourceTree = "<group>"; };
 		C2F3FC751C131BAF00DDDD2D /* PlayerHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerHelper.h; sourceTree = "<group>"; };
@@ -378,8 +378,8 @@
 		C2F3FC6F1C131BAF00DDDD2D /* Categories */ = {
 			isa = PBXGroup;
 			children = (
-				C2F3FC701C131BAF00DDDD2D /* NSString+HYNSString.h */,
-				C2F3FC711C131BAF00DDDD2D /* NSString+HYNSString.m */,
+				62C933A01C1ADAC90072A669 /* UILabel+HYLabel.h */,
+				62C933A11C1ADAC90072A669 /* UILabel+HYLabel.m */,
 			);
 			path = Categories;
 			sourceTree = "<group>";
@@ -574,13 +574,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				C2F3FCA41C132A3500DDDD2D /* LVRecordTool.m in Sources */,
+				62C933A21C1ADAC90072A669 /* UILabel+HYLabel.m in Sources */,
 				C2F3FC951C131BF600DDDD2D /* HYWord.m in Sources */,
 				C2F3FCA11C132A1D00DDDD2D /* DZRecordView.m in Sources */,
 				C2F3FC9A1C131C9A00DDDD2D /* DDDViewController.m in Sources */,
 				C2F3FC9E1C1329BC00DDDD2D /* ListViewController.m in Sources */,
 				C2F3FC251C127BEA00DDDD2D /* AppDelegate.m in Sources */,
 				C2F3FBED1C127B3700DDDD2D /* main.m in Sources */,
-				C2F3FC861C131BAF00DDDD2D /* NSString+HYNSString.m in Sources */,
 				C2F3FC961C131BF600DDDD2D /* Lyric.m in Sources */,
 				C2F3FC8D1C131BAF00DDDD2D /* CHMagnifierView.m in Sources */,
 				C2F3FC881C131BAF00DDDD2D /* PlayerHelper.m in Sources */,

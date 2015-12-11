@@ -14,7 +14,7 @@
 #import "Lyric.h"
 #import "PlayerHelper.h"
 #import "PhraseCell.h"
-#import "NSString+HYNSString.h"
+#import "UILabel+HYLabel.h"
 #import "HYWord.h"
 #import "CHMagnifierView.h"
 #import "DDDViewController.h"
@@ -24,6 +24,8 @@
 }
 //存储歌词
 @property (nonatomic, strong) NSArray *lrcArray;
+//选中的单词
+@property (nonatomic, copy)NSString *currentWord;
 //单词选中view
 @property (nonatomic, strong) UIView *wordView;
 //放大镜
@@ -102,7 +104,6 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"自动播放" style:UIBarButtonItemStylePlain target:self action:@selector(autoplay)];
     
     self.tableView.rowHeight = UITableViewAutomaticDimension;
-    
     self.tableView.estimatedRowHeight = 100;
     
 }
@@ -120,100 +121,34 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     switch (gesture.state) {
         case UIGestureRecognizerStateBegan:
         {
-            //在长按开始的时候计算出
-            //获取长按的cell
-            
-            NSLog(@"长按开始");
-            
-            if (self.magnifierView == nil) {
-                self.magnifierView = [[CHMagnifierView alloc] init];
-                self.magnifierView.viewToMagnify = self.tableView.window;
-            }
-            CGPoint magnifierPoint = [gesture locationInView:self.tableView];
-            int y = magnifierPoint.y - self.tableView.contentOffset.y - 30;
-            magnifierPoint.y = y;
-            
-            self.magnifierView.pointToMagnify = magnifierPoint;
-            [self.magnifierView makeKeyAndVisible];
-            
             CGPoint point = [gesture locationInView:self.tableView];
-            NSIndexPath * indexPath = [self.tableView indexPathForRowAtPoint:point];
-            if(indexPath == nil)
-                return ;
-            PhraseCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
-            //这个方法会提供 单词的 相对父视图的位置
-            NSArray *strArray = [NSString cuttingString:cell.phraseLabel.text label:cell.phraseLabel];
-            for (HYWord *hyword in strArray) {
-                CGRect frame = hyword.frame;
-                frame.origin.x += cell.frame.origin.x + 20;
-                frame.origin.y += cell.frame.origin.y + 20;
-                if ([self pointInRectangle:frame point:point]) {
-                    [self.wordView removeFromSuperview];
-                    self.wordView = [[UIView alloc] initWithFrame:frame];
-                    self.wordView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:.8 alpha:.5];
-                    [self.tableView addSubview:self.wordView];
-                    return;
-                }
-            }
-            //将wordView从父视图(tableView)上移除
-            [self.wordView removeFromSuperview];
+            //设置放大镜位置
+            [self magnifierPosition:point];
+            //显示放大镜
+            [self.magnifierView makeKeyAndVisible];
+            //获取cell 及其label上的单词
+            [self wordsOnCell:point];
             break;
         }
         case UIGestureRecognizerStateChanged:
         {
-            //在移动的时候
             CGPoint point = [gesture locationInView:self.tableView];
-            
-            //设置放大镜的位置
-            CGPoint magnifierPoint = point;
-            int y = magnifierPoint.y - self.tableView.contentOffset.y - 30;
-            magnifierPoint.y = y;
-            
-            self.magnifierView.pointToMagnify = magnifierPoint;
-            NSIndexPath * indexPath = [self.tableView indexPathForRowAtPoint:point];
-            if(indexPath == nil)
-                return ;
-            PhraseCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
-            //这个方法会提供 单词的 相对父视图的位置
-            NSArray *strArray = [NSString cuttingString:cell.phraseLabel.text label:cell.phraseLabel];
-            for (HYWord *hyword in strArray) {
-                CGRect frame = hyword.frame;
-                frame.origin.x += cell.frame.origin.x + 20;
-                frame.origin.y += cell.frame.origin.y + 20;
-                if ([self pointInRectangle:frame point:point]) {
-                    [self.wordView removeFromSuperview];
-                    self.wordView = [[UIView alloc] initWithFrame:frame];
-                    self.wordView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:.8 alpha:.5];
-                    [self.tableView addSubview:self.wordView];
-                    return;
-                }
-            }
-            [self.wordView removeFromSuperview];
-            //NSLog(@"长按改变 %@", NSStringFromCGPoint(point));
+            //设置放大镜位置
+            [self magnifierPosition:point];
+            //获取cell 及其label上的单词
+            [self wordsOnCell:point];
         }
             break;
         case UIGestureRecognizerStateEnded:
         {
+            CGPoint point = [gesture locationInView:self.tableView];
             //长按结束取消放大镜
             [self.magnifierView setHidden:YES];
-            //获取长按的cell
-            CGPoint point = [gesture locationInView:self.tableView];
-            NSIndexPath * indexPath = [self.tableView indexPathForRowAtPoint:point];
-            if(indexPath == nil)
-                return ;
-            PhraseCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
-            //NSLog(@"长按结束 %@ %@",NSStringFromCGPoint(point), NSStringFromCGRect(cell.frame));
-            [self.wordView removeFromSuperview];
-            //这个方法会提供 单词的 相对父视图的位置
-            NSArray *strArray = [NSString cuttingString:cell.phraseLabel.text label:cell.phraseLabel];
-            for (HYWord *hyword in strArray) {
-                CGRect frame = hyword.frame;
-                frame.origin.x += cell.frame.origin.x + 20;
-                frame.origin.y += cell.frame.origin.y + 20;
-                if ([self pointInRectangle:frame point:point]) {
-                    NSLog(@"%@",hyword.wordString);
-                    return;
-                }
+            //获取cell 及其label上的单词
+            [self wordsOnCell:point];
+            //调用系统词典显示
+            if (self.wordView.isHidden == NO) {
+                [self systemDictionarie:self.currentWord];
             }
             break;
         }
@@ -221,6 +156,64 @@ static NSString *const reuseIdentifier = @"PhraseCell";
             break;
     }
     
+}
+//设置放大镜位置
+-(void)magnifierPosition:(CGPoint)point
+{
+    //设置放大镜的位置
+    CGPoint magnifierPoint = point;
+    int y = magnifierPoint.y - self.tableView.contentOffset.y - 30;
+    magnifierPoint.y = y;
+    self.magnifierView.pointToMagnify = magnifierPoint;
+}
+//获取cell 及其label上的单词
+- (void)wordsOnCell:(CGPoint)point
+{
+    NSIndexPath * indexPath = [self.tableView indexPathForRowAtPoint:point];
+    if(indexPath == nil)
+        return ;
+    PhraseCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+    //这个方法会提供 单词的 相对父视图的位置
+    NSArray *strArray = [UILabel cuttingStringInLabel:cell.phraseLabel];
+    for (HYWord *hyword in strArray) {
+        CGRect frame = hyword.frame;
+        frame.origin.x += cell.frame.origin.x + 20;
+        frame.origin.y += cell.frame.origin.y + 20;
+        if ([self pointInRectangle:frame point:point]) {
+            self.wordView.hidden = NO;
+            self.wordView.frame = frame;
+            self.wordView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:.8 alpha:.5];
+            [self.tableView addSubview:self.wordView];
+            self.currentWord = hyword.wordString;
+            return;
+        }
+    }
+    self.wordView.hidden = YES;
+}
+//调用系统词典
+- (void) systemDictionarie:(NSString *)word
+{
+    
+    UIView *view = [[UIView alloc] initWithFrame:self.view.bounds];
+    view.backgroundColor = [UIColor grayColor];
+    view.alpha = .5;
+    [self.view.window addSubview:view];
+    
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        // 子线程
+        UIReferenceLibraryViewController *referenceLibraryViewController =[[UIReferenceLibraryViewController alloc] initWithTerm:word];
+        
+        // 主线程
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            [view removeFromSuperview];
+            
+            [self presentViewController:referenceLibraryViewController
+                               animated:YES
+                             completion:nil];
+            self.wordView.hidden = YES;
+        });
+    });
 }
 //判断点在矩形内
 - (BOOL) pointInRectangle:(CGRect )rech point:(CGPoint)clickPoint
@@ -232,13 +225,12 @@ static NSString *const reuseIdentifier = @"PhraseCell";
 }
 - (void) autoplay
 {
+    //弹出自动播放
+    DDDViewController *dddViewController = [DDDViewController new];
+    //拿到歌词
+    dddViewController.lrcArray = self.lrcArray;
     
-      //弹出自动播放
-    DDDViewController * dddVC = [[DDDViewController alloc]init];
-        //拿到歌词
-    dddVC.lrcArray = self.lrcArray;
-    
-    [self presentViewController:dddVC animated:YES completion:nil];
+    [self.navigationController pushViewController:dddViewController animated:YES];
 }
 
 //加载本地数据
@@ -258,6 +250,9 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     
     [[PlayerHelper sharePlayerHelper] playLocalMusicWithURL: mp3Url];
     
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
 }
 
 #pragma mark - Table view data source
@@ -279,6 +274,8 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     return cell;
 }
 
+
+
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     Lyric *lyric = self.lrcArray[indexPath.row];
@@ -289,6 +286,7 @@ static NSString *const reuseIdentifier = @"PhraseCell";
         endTime = MAXFLOAT;
         return;
     }
+    
     //保存结束时间
     Lyric *lyricTemp = self.lrcArray[indexPath.row + 1];
     endTime = lyricTemp.time;
@@ -311,8 +309,21 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     [[PlayerHelper sharePlayerHelper] pause];
 }
 
+#pragma mark -lazy
+- (CHMagnifierView *)magnifierView
+{
+    if (!_magnifierView) {
+        _magnifierView = [[CHMagnifierView alloc] init];
+        _magnifierView.viewToMagnify = self.tableView.window;
+    }
+    return _magnifierView;
+}
 
-
-
-
+- (UIView *)wordView
+{
+    if (!_wordView) {
+        _wordView = [[UIView alloc] init];
+    }
+    return _wordView;
+}
 @end
