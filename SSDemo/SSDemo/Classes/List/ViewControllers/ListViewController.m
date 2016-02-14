@@ -17,10 +17,16 @@
 #import "UILabel+HYLabel.h"
 #import "HYWord.h"
 #import "CHMagnifierView.h"
-#import "DDDViewController.h"
+#import <MediaPlayer/MediaPlayer.h>
+#import <AVFoundation/AVFoundation.h>
+//#import "DDDViewController.h"
 @interface ListViewController ()<UITableViewDelegate,UITableViewDataSource,PlayerHelperDelegate>
 {
     double endTime;
+    double musicDuration;
+    NSInteger currentIndex;
+    NSTimeInterval currentTime;
+
 }
 //存储歌词
 @property (nonatomic, strong) NSArray *lrcArray;
@@ -30,7 +36,8 @@
 @property (nonatomic, strong) UIView *wordView;
 //放大镜
 @property (strong, nonatomic) CHMagnifierView *magnifierView;
-
+//自动播放
+@property (nonatomic, assign) BOOL isAutoPlay;
 
 @property (nonatomic,strong) UITableView * tableView;
 
@@ -44,9 +51,20 @@ static NSString *const reuseIdentifier = @"PhraseCell";
 
 @implementation ListViewController
 
+#pragma mark - 单例方法
++ (instancetype) shareListViewController
+{
+    static ListViewController *listVC = nil;
+    if (listVC == nil) {
+        listVC = [[ListViewController alloc] init];
+    }
+    return listVC;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, kScreenWidth, kScreenHeight - 64)];
+    
+    self.tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, kScreenWidth, kScreenHeight - 50)];
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     [self.view addSubview:_tableView];
@@ -81,12 +99,6 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     _imgView.layer.masksToBounds = YES;
     [self.view addSubview:_imgView];
     
-    
-    
-
- 
-    
-    
     //注册cell
     [self.tableView registerNib:[UINib nibWithNibName:@"PhraseCell" bundle:nil] forCellReuseIdentifier:reuseIdentifier];
     //添加长按手势
@@ -94,8 +106,6 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     longPressGr.minimumPressDuration = .5;
     [self.tableView addGestureRecognizer:longPressGr];
     
-    //加载本地数据
-    [self loadLocalData];
     
     //设置代理
     [PlayerHelper sharePlayerHelper].delegate = self;
@@ -104,17 +114,22 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"自动播放" style:UIBarButtonItemStylePlain target:self action:@selector(autoplay)];
     
     self.tableView.rowHeight = UITableViewAutomaticDimension;
-    self.tableView.estimatedRowHeight = 100;
+    self.tableView.estimatedRowHeight = 89.5;
     
+    //去掉cell 分割线
+    _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    
+    //初始化数据
+    _curretnLenssonNumber = -1;
 }
-
-- (void)viewWillAppear:(BOOL)animated
+-(void)viewWillAppear:(BOOL)animated
 {
-    
     [super viewWillAppear:animated];
-    [PlayerHelper sharePlayerHelper].delegate = self;
+    if (_lessonNumber != _curretnLenssonNumber) {
+        [self loadLocalDataWithLessonNumber:_lessonNumber];
+        [self.tableView reloadData];
+    }
 }
-
 //长按的方法
 -(void)longPressToDo:(UILongPressGestureRecognizer *)gesture
 {
@@ -223,21 +238,58 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     }
     return NO;
 }
+
+#pragma mark - 自动播放按钮
 - (void) autoplay
 {
+    /*
+     *根据项目需求，自动播放在当前页面播放
+     *实现规则如下：
+     *设置标识位，标识为自动播放，取消则为点击播放。
+     *存为属性 isAutoPlay
+     
     //弹出自动播放
     DDDViewController *dddViewController = [DDDViewController new];
     //拿到歌词
     dddViewController.lrcArray = self.lrcArray;
     
     [self.navigationController pushViewController:dddViewController animated:YES];
+     */
+    
+    //点击播放语音
+    [[PlayerHelper sharePlayerHelper] play];
+    
+//    _isAutoPlay = _isAutoPlay?NO:YES;
+    
+    if (_isAutoPlay) {
+        _isAutoPlay = NO;
+        
+        //关闭屏幕常亮
+        [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+        
+        
+        self.navigationItem.rightBarButtonItem.title = @"自动播放";
+    }else{
+        _isAutoPlay = YES;
+        
+        //设置屏幕常亮
+        [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
+        
+        self.navigationItem.rightBarButtonItem.title = @"停止播放";
+    }
+    
 }
 
 //加载本地数据
-- (void) loadLocalData
+- (void) loadLocalDataWithLessonNumber:(NSInteger)lenssonNumber;
 {
+    endTime = 0;
+    
+    _curretnLenssonNumber = lenssonNumber;
+    
+    NSString *lessonName = [NSString stringWithFormat:@"oral8000_%ld",lenssonNumber+1];
     //1.从包内容获取歌词
-    NSString *lrcString = [[NSString alloc]initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"oral8000_1" ofType:@"lrc"] encoding:NSUTF8StringEncoding error:nil];
+    NSString *lrcString = [[NSString alloc]initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:lessonName ofType:@"lrc"] encoding:NSUTF8StringEncoding error:nil];
     //NSLog(@"%@",textString);
     
     //2.分隔歌词
@@ -246,10 +298,17 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     self.lrcArray = [NSArray arrayWithArray:[LyricHelper shareLyricHelper].allDataArray];
     
     //加载本地音频
-    NSString *mp3Url = [[NSBundle mainBundle] pathForResource:@"oral8000_1" ofType:@"mp3"];
+    NSString *mp3Url = [[NSBundle mainBundle] pathForResource:lessonName ofType:@"mp3"];
     
     [[PlayerHelper sharePlayerHelper] playLocalMusicWithURL: mp3Url];
     
+    //获取歌曲时间
+    musicDuration = [[PlayerHelper sharePlayerHelper] totalAcquisitionTimeWithUrl:mp3Url];
+    
+    //暂停
+    [self pauseMusic];
+    NSLog(@"%@",NSStringFromCGRect( self.tableView.frame));
+    self.tableView.contentOffset = CGPointMake(0, 0);
 }
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -269,18 +328,41 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     PhraseCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];
     Lyric *lyric = self.lrcArray[indexPath.row];
     
-    cell.phraseLabel.text = [lyric.lyric stringByReplacingOccurrencesOfString:@"(" withString:@"\n("];
+    //鉴于 党政的不负责任，这里需要将 意大利语与汉语交换位置。
+    NSArray *compentsArray = [lyric.lyric componentsSeparatedByString:@")"];
     
+    if (compentsArray.count == 2) {
+        
+        NSString *firstString = compentsArray[0];
+        
+        NSString *lastString = compentsArray[1];
+        //中文翻译补“ ）”
+        firstString = [firstString stringByAppendingString:@")"];
+        cell.phraseLabel.text = lastString;
+        cell.chineseLabel.text = firstString;
+    }
+    //选中cell的颜色
+    cell.phraseLabel.highlightedTextColor = [UIColor colorWithRed:40.0/255 green:80.0/255 blue:226.0/255 alpha:1];
+    
+    cell.selectedBackgroundView = ({
+        UIView *view = [UIView new];
+        view;
+    });
     return cell;
 }
 
-
-
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    [_tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    currentIndex = indexPath.row;
+    
     Lyric *lyric = self.lrcArray[indexPath.row];
     //点击播放语音
     [[PlayerHelper sharePlayerHelper] seekToTime:lyric.time];
+    
+    //选中cell的效果
+    [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:(UITableViewScrollPositionMiddle)];
     
     if (self.lrcArray.count == indexPath.row + 1) {
         endTime = MAXFLOAT;
@@ -290,15 +372,36 @@ static NSString *const reuseIdentifier = @"PhraseCell";
     //保存结束时间
     Lyric *lyricTemp = self.lrcArray[indexPath.row + 1];
     endTime = lyricTemp.time;
-    
 }
+
 
 #pragma PlayerHelper Delegate
 //给外界提供当前播放时间 do something
 - (void) playingWithTime:(NSTimeInterval)time
 {
-    //NSLog(@"1%lf",time);
-    if (endTime <= time) {
+    if (_isAutoPlay) {
+        
+        currentTime = time;
+        
+        //自动播放模式
+        static NSInteger indexRow = 0;
+        NSIndexPath *index = [NSIndexPath indexPathForRow:[[LyricHelper shareLyricHelper] lyricsWithTime:time] inSection:0];
+        
+        if (indexRow != index.row) {
+            [self.tableView selectRowAtIndexPath:index animated:YES scrollPosition:(UITableViewScrollPositionMiddle)];
+            
+            currentIndex = index.row;
+            
+            [self configNowPlayingInfoCenter];
+            
+            indexRow = index.row;
+        }
+    }
+    //点播模式
+    else if(endTime <= time) {
+        //结束接受远程事件
+        [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
+        [self resignFirstResponder];
         [[PlayerHelper sharePlayerHelper] pause];
     }
 }
@@ -307,6 +410,69 @@ static NSString *const reuseIdentifier = @"PhraseCell";
 {
     //将播放完毕并不结束
     [[PlayerHelper sharePlayerHelper] pause];
+}
+
+#pragma mark - 上一曲 下一曲 暂停 播放
+- (void)pauseMusic
+{
+    NSLog(@"暂停音乐");
+    self.navigationItem.rightBarButtonItem.title = @"自动播放";
+    [[PlayerHelper sharePlayerHelper] pause];
+    
+}
+- (void)playMusic
+{
+    [[PlayerHelper sharePlayerHelper] play];
+}
+- (void)PreviousMusic
+{
+    Lyric *lyric = self.lrcArray[currentIndex - 1 < 0?0:currentIndex-1];
+    [[PlayerHelper sharePlayerHelper] seekToTime:lyric.time];
+    
+}
+- (void)nextMusic
+{
+    Lyric *lyric = self.lrcArray[currentIndex + 1 >= _lrcArray.count?_lrcArray.count - 1:currentIndex + 1];
+    [[PlayerHelper sharePlayerHelper] seekToTime:lyric.time];
+}
+
+#pragma mark - 设置锁屏播放器信息
+-(void)configNowPlayingInfoCenter
+{
+    
+    if (NSClassFromString(@"MPNowPlayingInfoCenter")) {
+        //要一个字典存放要显示的信息
+        NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+        
+        //歌曲名称
+        Lyric *lyric = self.lrcArray[currentIndex];
+        NSArray *compentsArray = [lyric.lyric componentsSeparatedByString:@")"];
+        
+        if (compentsArray.count == 2) {
+            [dict setObject:compentsArray[1] forKey:MPMediaItemPropertyTitle];
+        }
+        
+        //演唱者
+        [dict setObject:@"演唱者" forKey:MPMediaItemPropertyArtist];
+        //专辑名
+        [dict setObject:@"专辑名" forKey:MPMediaItemPropertyAlbumTitle];
+        //专辑缩略图
+        /*
+        if (self.playerImgView.image != nil){
+            UIImage *image = self.playerImgView.image;
+            MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc] initWithImage:image];
+            [dict setObject:artwork forKey:MPMediaItemPropertyArtwork];
+        }
+         */
+        //音乐剩余时长
+        [dict setObject:[NSNumber numberWithDouble:musicDuration] forKey:MPMediaItemPropertyPlaybackDuration];
+        
+        //        音乐当前播放时间 在计时器中修改
+        [dict setObject:[NSNumber numberWithDouble:currentTime] forKey:MPNowPlayingInfoPropertyElapsedPlaybackTime];
+        
+        //设置锁屏状态下屏幕显示播放音乐信息
+        [[MPNowPlayingInfoCenter defaultCenter] setNowPlayingInfo:dict];
+    }
 }
 
 #pragma mark -lazy

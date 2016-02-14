@@ -10,5 +10,7 @@
 
 @interface PhraseCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UILabel *phraseLabel;
+@property (weak, nonatomic) IBOutlet UILabel *chineseLabel;
+
 
 @end

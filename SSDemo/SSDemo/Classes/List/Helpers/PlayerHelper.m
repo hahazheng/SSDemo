@@ -140,7 +140,14 @@
 }
 
 
-
+//获取总时间
+- (double) totalAcquisitionTimeWithUrl:(NSString *)musicUrl
+{
+    AVURLAsset* audioAsset =[AVURLAsset URLAssetWithURL:[NSURL fileURLWithPath:musicUrl] options:nil];
+    CMTime audioDuration = audioAsset.duration;
+    float audioDurationSeconds = CMTimeGetSeconds(audioDuration);
+    return audioDurationSeconds;
+}
 
 #pragma mark - 懒加载
 -(AVPlayer *)player

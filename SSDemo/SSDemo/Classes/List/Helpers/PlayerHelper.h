@@ -35,4 +35,9 @@
 //播放指定时间
 - (void) seekToTime:(double)time;
 
+//获取总时间
+- (double) totalAcquisitionTimeWithUrl:(NSString *)musicUrl;
+
+
+
 @end
