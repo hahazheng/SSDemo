@@ -14,6 +14,9 @@
 + (NSArray *)cuttingStringInLabel:(UILabel *)label
 {
     NSString *string = label.text;
+    
+    NSLog(@"%@",string);
+    
     NSMutableArray *array = [NSMutableArray array];
     char str[string.length];
     
@@ -27,7 +30,18 @@
     for(;(*fun)!='\0';fun++){
         char *world = malloc(sizeof(char));
         int i = 0;
-        while((isalpha(*fun) || *fun == '\'' )&&(*fun)!='\0'){
+        //isalpha(*fun)
+        while(*fun != ' ' &&
+              *fun != '.' &&
+              *fun != '?' &&
+              *fun != '\0' &&
+              *fun != '\n' &&
+              *fun != '!' &&
+              *fun != ',' &&
+              *fun != '"' &&
+              *fun != '\t'
+              )
+        {
             world[i++] = *fun;
             fun++;
             state=1;
@@ -35,6 +49,7 @@
         //处理完当前单词
         if(1 == state){
             world[i] = '\0';
+            
             HYWord *hyword = [HYWord new];
             hyword.wordString = [NSString stringWithUTF8String:world];
             CGSize wordSize   = [hyword.wordString sizeWithAttributes:@{NSFontAttributeName:label.font}];
@@ -50,6 +65,7 @@
                 point.y += wordSize.height;
             }
             hyword.frame = CGRectMake(point.x, point.y, wordSize.width, wordSize.height);
+            
             //单词累加宽
             point.x += wordSize.width;
             [array addObject:hyword];
