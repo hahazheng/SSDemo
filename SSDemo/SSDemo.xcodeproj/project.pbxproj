@@ -389,7 +389,7 @@
 				TargetAttributes = {
 					C2F3FBE71C127B3700DDDD2D = {
 						CreatedOnToolsVersion = 7.1;
-						DevelopmentTeam = L653486RSK;
+						DevelopmentTeam = RS284X7MQB;
 					};
 				};
 			};
@@ -616,7 +616,7 @@
 				INFOPLIST_FILE = SSDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = com.lanou22.SSDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lanou22.SSDemolhy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 			};
@@ -632,7 +632,7 @@
 				INFOPLIST_FILE = SSDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = com.lanou22.SSDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lanou22.SSDemolhy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 			};

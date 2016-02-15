@@ -8,6 +8,7 @@
 
 #import "DZRecordView.h"
 #import "LVRecordTool.h"
+#import "PlayerHelper.h"
 #import "Header.h"
 
 @interface DZRecordView ()
@@ -47,7 +48,7 @@
  
     self.beginButton = [UIButton buttonWithType:UIButtonTypeSystem];
     
-    self.beginButton.frame = CGRectMake(277, 7, kScreenWidth - 270 - 14, 37);
+    self.beginButton.frame = CGRectMake(kScreenWidth - 110, 7, 100, 37);
     
     _beginButton.layer.cornerRadius = 5;
     
@@ -68,7 +69,7 @@
     
     self.startButton = [UIButton buttonWithType:UIButtonTypeSystem];
     
-    _startButton.frame = CGRectMake(10, 7, 260, 37);
+    _startButton.frame = CGRectMake(10, 7, kScreenWidth - 130, 37);
 
     
     [_startButton setTitle:@"按住  说话" forState:UIControlStateNormal];
@@ -103,6 +104,7 @@
 
 - (void)recordBtnTouchDown:(UIButton *)sender
 {
+    [[PlayerHelper sharePlayerHelper] pause];
     
     [self.recordTool startRecording];
     

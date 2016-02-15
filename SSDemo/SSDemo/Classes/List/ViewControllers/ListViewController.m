@@ -198,6 +198,8 @@ static NSString *const reuseIdentifier = @"PhraseCell";
             self.wordView.hidden = NO;
             self.wordView.frame = frame;
             self.wordView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:.8 alpha:.5];
+            self.wordView.layer.cornerRadius = 3;
+            self.wordView.layer.masksToBounds = YES;
             [self.tableView addSubview:self.wordView];
             self.currentWord = hyword.wordString;
             return;
